@@ -1,5 +1,6 @@
 import allure
 import jsonschema
+import pytest
 import requests
 from .schemas.pet_schema import PET_SCHEMA
 
@@ -17,7 +18,7 @@ class TestPet:
         with allure.step("Проверка статуса ответа"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
 
-        with allure.step("Проверка текстовго содержимого ответа"):
+        with allure.step("Проверка текстового содержимого ответа"):
             assert response.text == "Pet deleted", "Текст ошибки не совпал с ожидаемым"
 
     @allure.title("Попытка обновить несуществующего питомца")
@@ -132,3 +133,22 @@ class TestPet:
             assert response.json()["id"] == pet_id
             assert response.json()["name"] == payload["name"]
             assert response.json()["status"] == payload["status"]
+
+    @allure.title("Получение списка питомцев по статусу")
+    @pytest.mark.parametrize(
+        "status, expected_status_code",
+        [
+            ("available", 200),
+            ("pending", 200),
+            ("sold", 200),
+            ("", 400),
+            ("empty_status", 400)
+        ]
+    )
+    def test_get_pets_by_status(self, status, expected_status_code):
+        with allure.step(f"Отправка запроса на получение питомца по статусу {status}"):
+            response = requests.get(url=f"{BASE_URL}/pet/findByStatus", params={"status": status})
+
+        with allure.step("Проверка статуса ответа и данных питомца"):
+            assert response.status_code == expected_status_code
+            assert isinstance(response.json(), list)
