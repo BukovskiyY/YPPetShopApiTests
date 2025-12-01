@@ -141,7 +141,7 @@ class TestPet:
             ("available", 200),
             ("pending", 200),
             ("sold", 200),
-            ("", 400),
+            (" ", 400),
             ("empty_status", 400)
         ]
     )
@@ -151,4 +151,5 @@ class TestPet:
 
         with allure.step("Проверка статуса ответа и данных питомца"):
             assert response.status_code == expected_status_code
-            assert isinstance(response.json(), list)
+            if expected_status_code == 200:
+                assert isinstance(response.json(), list), "Данные не являются списком"
